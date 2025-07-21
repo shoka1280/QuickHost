@@ -56,9 +56,22 @@ public class HotelServiceImpl implements  HotelService{
     @Override
     public boolean deleteHotelById(Long id) {
         Hotel hotel=hotelRepo.findById(id).orElseThrow(()->new ResourceNotFoundException("didnot found hotel"));
-        log.info("delelting hoted with id: ",id);
+        log.info("delelting hoted with id:{} ",id);
          hotelRepo.deleteById(id);
          //todo:delete the future invetort
         return true;
+    }
+
+    @Override
+    public void activateHotel(Long id) {
+        log.info("Atempting to activate hotel with id: {}",id);
+        Hotel hotel=hotelRepo
+                .findById(id)
+                .orElseThrow(()->new ResourceNotFoundException("Hotel not found "));
+        log.info("Activating hotel with id : {}",id);
+        hotel.setActive(true);
+        hotelRepo.save(hotel);
+        //TODO:create inventory for all rooms for this hotel
+
     }
 }
