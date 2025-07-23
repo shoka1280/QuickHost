@@ -1,8 +1,7 @@
 package com.Project.QuickHost.Entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
@@ -17,6 +16,9 @@ import java.time.LocalDate;
                         name="unique_hotelid_roomid_data",
                 columnNames ={"hotel_id","room_id","date"} )//ensuring that each room-hote-data combo remain unique
         })
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Inventory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

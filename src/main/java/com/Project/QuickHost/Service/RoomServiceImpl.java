@@ -5,6 +5,7 @@ import com.Project.QuickHost.Entity.Hotel;
 import com.Project.QuickHost.Entity.Room;
 import com.Project.QuickHost.Repository.HotelRepo;
 import com.Project.QuickHost.Repository.RoomRepo;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -20,6 +21,7 @@ public class RoomServiceImpl implements RoomService {
     private final RoomRepo roomRepo;
     private final ModelMapper modelMapper;
     private final HotelRepo hotelRepo;
+    private final InventoryService inventoryService;
 
     @Override
     public RoomDto createRoom(Long Hotelid,RoomDto roomDto) {
@@ -27,9 +29,14 @@ public class RoomServiceImpl implements RoomService {
         Hotel hotel=hotelRepo.findById(Hotelid).orElseThrow(()->new RuntimeException("Hotel not found iwht id {}"+Hotelid));
         Room room=modelMapper.map(roomDto,Room.class);
         room.setHotel(hotel);
+
         Room createRoom=roomRepo.save(room);
+        if(hotel.isActive()){
+            inventoryService.initaliszeRoomForAYear(room);
+
+        }
         return modelMapper.map(createRoom,RoomDto.class);//response
-        //Todo:Create inventory as soon as room is created and hotel is active
+
     }
 
     @Override
@@ -60,10 +67,14 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
+    @Transactional
     public void deleteRoomById(Long id) {
         Room room=roomRepo.findById(id).orElseThrow(()->new RuntimeException("Room not found with id: {}"+id));
         log.info("deleting room with id:{}",id);
+        inventoryService.deleteFutureInventory(room);
+
         roomRepo.deleteById(id);
-        //TODO:delete all inventort of this room
+        //TODO:delete all inventory of this room
+
     }
 }
