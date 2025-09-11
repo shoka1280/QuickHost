@@ -28,5 +28,4 @@ public class User {
     private Set<Roles>roles;//storing roles a user can have[one to one mapping]
 
 
-
 }

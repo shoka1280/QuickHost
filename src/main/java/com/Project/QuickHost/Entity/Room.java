@@ -1,5 +1,6 @@
 package com.Project.QuickHost.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,9 +21,14 @@ public class Room {
 
     @ManyToOne
     @JoinColumn(name = "hotel_id", nullable = false)//create a room ,specifiy
+    @JsonIgnore
     private Hotel hotel;
+
+
     @Column(nullable=false)
     private String type;
+
+    //pricing Strategy
     @Column(nullable=false,precision=10,scale=2)//price upto 10 lenghth , after decimal 2
     private BigDecimal basePrice;
 
@@ -36,6 +42,6 @@ public class Room {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    private Integer totalcount;
+    private Integer totalCount;
     private Integer capacity;
 }

@@ -1,23 +1,28 @@
 package com.Project.QuickHost.Entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
 @Getter
 @Setter
 @Table (name="Bookings")
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Bookings {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @OneToOne(fetch = FetchType.EAGER)
+    @ManyToOne  (fetch = FetchType.EAGER)
     @JoinColumn(name = "hotel_id", nullable = false) // create a room, specify the hotel it belongs to
     private Hotel hotel;
 
@@ -32,11 +37,11 @@ public class Bookings {
     @JoinColumn(name = "user_id", nullable = false) // create a booking, specify the user it belongs to
     private User user;
 
-    @Column(nullable = false, updatable = false)
     @CreationTimestamp
-    private LocalDate createdAt;
-    @Column(nullable = false)
-    private LocalDate updatedAt;
+    @Column(updatable=false)
+    private LocalDateTime createdAt;
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 
 
 
@@ -45,12 +50,11 @@ public class Bookings {
     @Column(nullable = false)
     private LocalDate checkOutDate;
 
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "payement_id") // create a booking, specify the payment it belongs to
-    private Payement payement;
+//    @OneToOne(fetch = FetchType.EAGER)
+//    @JoinColumn(name = "payement_id") // create a booking, specify the payment it belongs to
+//    private Payement payement;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private BookingStatus bookingStatus;
 
     @ManyToMany
@@ -58,6 +62,9 @@ public class Bookings {
     joinColumns=@JoinColumn(name="booking_id"),
     inverseJoinColumns=@JoinColumn(name="guest_id"))
     private Set<Guest> guests;
+
+    @Column(nullable=false,precision=10,scale=2)
+    private BigDecimal amount; // Amount of the payment
 
 }
 

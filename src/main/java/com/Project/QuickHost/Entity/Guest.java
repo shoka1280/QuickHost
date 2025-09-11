@@ -25,6 +25,6 @@ public class Guest {
 
     private Integer age;
 
-    @ManyToMany(mappedBy = "guests")
-    private Set<Bookings> bookings;
+//    @ManyToMany(mappedBy = "guests")
+//    private Set<Bookings> bookings;
 }

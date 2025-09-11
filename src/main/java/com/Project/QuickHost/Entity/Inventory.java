@@ -6,6 +6,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -37,20 +38,27 @@ public class Inventory {
 
     @Column(nullable = false,columnDefinition = "INTEGER DEFAULT 0")
     private Integer bookedCount; // number of rooms booked for this date
+
+    @Column(nullable = false,columnDefinition = "INTEGER DEFAULT 0")
+    private Integer reservedCount; //reserviing for 10 min while booking is in progess
+
+
+
+
     @Column(nullable = false)
     private Integer totalCount;
 
-    @Column(updatable = false)
+
     private LocalDate createdAt;
     @UpdateTimestamp
-    private  LocalDate updatedAt;
+    private LocalDateTime updatedAt;
 
 //    precision is the total number of digits allowed in the number (both before and after the decimal point).
 //    scale is the number of digits allowed after the decimal point.
     @Column(nullable = false,precision = 5,scale=2)
     private BigDecimal surgeFactor; // price for the room on this date
 
-    @Column(nullable=false,precision=10,scale=2)
+    @Column(nullable=false,precision=10,scale=2)//price of invetory on that particular day
     private BigDecimal price;
 
     @Column(nullable = false)

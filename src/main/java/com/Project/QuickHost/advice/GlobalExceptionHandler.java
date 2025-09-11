@@ -1,22 +1,24 @@
 package com.Project.QuickHost.advice;
 
-import com.Project.QuickHost.advice.ApiError;
-import com.Project.QuickHost.advice.ApiResponse;
+
 import com.Project.QuickHost.exception.ResourceNotFoundException;
 import org.apache.coyote.BadRequestException;
-import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.HttpServerErrorException.InternalServerError;
 
 import javax.naming.AuthenticationException;
 import java.nio.file.AccessDeniedException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {//works with controller and service (dispatcher servelet0
+
     @ExceptionHandler(ResourceNotFoundException.class)
-   public ResponseEntity<ApiResponse<?>> handleResourceNotFoundException(ResourceNotFoundException ex) {
+    public ResponseEntity<ApiResponse<?>> handleResourceNotFoundException(ResourceNotFoundException ex) {
         ApiError error = ApiError.builder()
                 .status(HttpStatus.NOT_FOUND)
                 .message(ex.getMessage())
@@ -59,4 +61,13 @@ public class GlobalExceptionHandler {//works with controller and service (dispat
                 .build();
         return new ResponseEntity<>(new ApiResponse<>(error), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @ExceptionHandler(InternalServerError.class)
+    public ResponseEntity<ApiResponse<?>> handleInternalException(Exception exception) {
+        ApiError error = ApiError.builder()
+                .message(("Internal  Error") + exception.getMessage())
+                .build();
+        return  new ResponseEntity<>(new ApiResponse<>(error), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 }

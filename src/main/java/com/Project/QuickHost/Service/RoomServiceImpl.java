@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class RoomServiceImpl implements RoomService {
     private final RoomRepo roomRepo;
     private final ModelMapper modelMapper;
@@ -24,6 +25,7 @@ public class RoomServiceImpl implements RoomService {
     private final InventoryService inventoryService;
 
     @Override
+
     public RoomDto createRoom(Long Hotelid,RoomDto roomDto) {
         log.info("Creating new Room with Hotelid: {}",Hotelid);
         Hotel hotel=hotelRepo.findById(Hotelid).orElseThrow(()->new RuntimeException("Hotel not found iwht id {}"+Hotelid));
@@ -32,9 +34,10 @@ public class RoomServiceImpl implements RoomService {
 
         Room createRoom=roomRepo.save(room);
         if(hotel.isActive()){
-            inventoryService.initaliszeRoomForAYear(room);
+            inventoryService.initaliszeRoomForAYear(createRoom);
 
         }
+
         return modelMapper.map(createRoom,RoomDto.class);//response
 
     }
@@ -71,7 +74,7 @@ public class RoomServiceImpl implements RoomService {
     public void deleteRoomById(Long id) {
         Room room=roomRepo.findById(id).orElseThrow(()->new RuntimeException("Room not found with id: {}"+id));
         log.info("deleting room with id:{}",id);
-        inventoryService.deleteFutureInventory(room);
+        inventoryService.deleteInventory(room);
 
         roomRepo.deleteById(id);
         //TODO:delete all inventory of this room
