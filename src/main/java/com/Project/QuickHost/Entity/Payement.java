@@ -1,5 +1,6 @@
 package com.Project.QuickHost.Entity;
 
+import com.Project.QuickHost.Entity.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

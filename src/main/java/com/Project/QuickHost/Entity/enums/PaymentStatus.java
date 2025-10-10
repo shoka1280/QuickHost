@@ -1,4 +1,4 @@
-package com.Project.QuickHost.Entity;
+package com.Project.QuickHost.Entity.enums;
 
 public enum PaymentStatus {
     PENDING, // Payment is initiated but not completed

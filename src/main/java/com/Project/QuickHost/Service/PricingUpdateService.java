@@ -36,8 +36,9 @@ public class PricingUpdateService {
     private final InventoryRepo inventoryRepo;
     private final PricingService priceService;
     //creating scheduler to update prices every hour
-    @Scheduled(cron = "0 */5 * * * *") // every 5 minutes
-//every 5min\
+    @Scheduled(cron = "0 0 */5 * * *") // every 5 hours
+
+
     public void UpdatePrices()
     {
         int page=0;//which page you want to start
@@ -61,11 +62,11 @@ public class PricingUpdateService {
         LocalDate startDate=LocalDate.now();
         LocalDate endDate=LocalDate.now().plusYears(1);
 
-        //updating inventory prices
-        List<Inventory> inventoryList=inventoryRepo.findByHotelAndDateBetween(hotel,startDate,endDate);
-        //calculate the dyanamic price
-        updateInventoryPrices(inventoryList);
 
+        List<Inventory> inventoryList=inventoryRepo.findByHotelAndDateBetween(hotel,startDate,endDate);
+        //updating inventory by dyanamic prices
+        updateInventoryPrices(inventoryList);
+       //updating hotel min prices based on inventory[we will since minimum room price per hotel ]
         updateHotelMinPrice(hotel,inventoryList,startDate ,endDate);
 
 
@@ -73,13 +74,15 @@ public class PricingUpdateService {
 
     private void updateHotelMinPrice(Hotel hotel, List<Inventory> inventoryList, LocalDate startDate, LocalDate endDate) {
         Map<LocalDate,BigDecimal> dailyMinPrice=inventoryList.stream()
-                .collect(Collectors.groupingBy(Inventory::getDate
-                ,Collectors.mapping(Inventory::getPrice,Collectors.minBy(Comparator.naturalOrder()))
+                .collect(Collectors.groupingBy(Inventory::getDate//grouping by date
+                ,Collectors.mapping(Inventory::getPrice,Collectors.minBy(Comparator.naturalOrder()))//extract price and find minimum price for that data
                 ))
-                .entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey,e->e.getValue().orElse(BigDecimal.ZERO)));
+                .entrySet().stream()//maps you get convert its entryset into stream for futher
+                .collect(Collectors.toMap(Map.Entry::getKey,e->e.getValue().orElse(BigDecimal.ZERO)));//take date as keu and unwrap the price
 
         //PreParing hotelMinPrice entity in bulk
+//        rom a list of Inventory objects, you want a map:
+//        date → minimum price on that date.
         List<HotelMinPrice> hotelPrices=new ArrayList<>();
         dailyMinPrice.forEach((date, price) -> {
             HotelMinPrice hotelPrice=hotelMinPriceRepo.findByHotelAndDate(hotel,date)

@@ -1,10 +1,9 @@
 package com.Project.QuickHost.Entity;
 
+import com.Project.QuickHost.Entity.enums.Gender;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.Set;
 
 @Entity
 @Getter

@@ -1,12 +1,8 @@
 package com.Project.QuickHost.Dto;
 
-import com.Project.QuickHost.Entity.Bookings;
-import com.Project.QuickHost.Entity.Gender;
+import com.Project.QuickHost.Entity.enums.Gender;
 import com.Project.QuickHost.Entity.User;
-import jakarta.persistence.*;
 import lombok.Data;
-
-import java.util.Set;
 
 @Data
 public class GuestDto {

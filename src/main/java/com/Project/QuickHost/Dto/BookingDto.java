@@ -1,6 +1,6 @@
 package com.Project.QuickHost.Dto;
 
-import com.Project.QuickHost.Entity.*;
+import com.Project.QuickHost.Entity.enums.BookingStatus;
 import lombok.Data;
 
 import java.time.LocalDate;

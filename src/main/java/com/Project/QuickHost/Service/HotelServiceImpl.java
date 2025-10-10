@@ -5,13 +5,16 @@ import com.Project.QuickHost.Dto.HotelInfoDto;
 import com.Project.QuickHost.Dto.RoomDto;
 import com.Project.QuickHost.Entity.Hotel;
 import com.Project.QuickHost.Entity.Room;
+import com.Project.QuickHost.Entity.User;
 import com.Project.QuickHost.Repository.HotelRepo;
 import com.Project.QuickHost.Repository.RoomRepo;
 import com.Project.QuickHost.exception.ResourceNotFoundException;
+import com.Project.QuickHost.exception.UnAuthorisedException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,6 +37,10 @@ public class HotelServiceImpl implements  HotelService{
         Hotel hotel=modelMapper.map(hotelDto,Hotel.class);
         hotel.setActive(false);//intially hotel is inactive
         hotelRepo.save(hotel);
+
+        //current user info
+        User user=(User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        hotel.setOwner(user);
         log.info("Created new Hotel with id:{}",hotel.getId());
        return modelMapper.map(hotel,HotelDto.class);
 
@@ -45,12 +52,25 @@ public class HotelServiceImpl implements  HotelService{
         Hotel hotel=hotelRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Hotel not found with id: " + id));
         log.info("Fetching Hotel with id :{}",id);
 
+        //if give info to owner of hotel only
+        User user=(User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if(!user.equals(hotel.getOwner())){
+            throw new UnAuthorisedException("Not the current owner of hotel with id "+id);
+        }
+
         return modelMapper.map(hotel,HotelDto.class);
     }
 
     @Override
     public HotelDto  updateHotelById(Long id,HotelDto hotel) {
         Hotel findHotel=hotelRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Hotel not found with id: " + id));
+
+        //if give info to owner of hotel only
+        User user=(User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if(!user.equals(findHotel.getOwner())){
+            throw new UnAuthorisedException("Not the current owner of hotel with id "+id);
+        }
+
         log.info("udating hotel with id: {}", id);
         modelMapper.map(hotel,findHotel);
         findHotel.setId(id);
@@ -63,6 +83,12 @@ public class HotelServiceImpl implements  HotelService{
     @Transactional//used when w more than one table involved,if one fails everything will got back to prev stage
     public boolean deleteHotelById(Long id) {
         Hotel hotel=hotelRepo.findById(id).orElseThrow(()->new ResourceNotFoundException("didnot found hotel"));
+        //if give info to owner of hotel only
+        User user=(User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if(!user.equals(hotel.getOwner())){
+            throw new UnAuthorisedException("Not the current owner of hotel with id "+id);
+        }
+
         log.info("delelting hoted with id:{} ",id);
 
          //delete the  inventory
@@ -80,6 +106,12 @@ public class HotelServiceImpl implements  HotelService{
         Hotel hotel=hotelRepo
                 .findById(id)
                 .orElseThrow(()->new ResourceNotFoundException("Hotel not found "));
+        //if give info to owner of hotel only
+        User user=(User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if(!user.equals(hotel.getOwner())){
+            throw new UnAuthorisedException("Not the current owner of hotel with id "+id);
+        }
+
         log.info("Activating hotel with id : {}",id);
         hotel.setActive(true);
         for(Room room:hotel.getRoom())
@@ -90,6 +122,7 @@ public class HotelServiceImpl implements  HotelService{
 
     }
 
+
     @Override
     public List<HotelDto> getAllHotel() {
         List<Hotel>hotels=hotelRepo.findAll();
@@ -99,6 +132,8 @@ public class HotelServiceImpl implements  HotelService{
         }
         return hotels.stream().map(hotel->modelMapper.map(hotel,HotelDto.class)).collect(Collectors.toList());
     }
+
+    //A public method using hotel browing
     @Override
     public HotelInfoDto getHotelInfoById(Long id)
     {

@@ -4,11 +4,15 @@ import com.Project.QuickHost.Dto.BookingDto;
 import com.Project.QuickHost.Dto.BookingRequest;
 import com.Project.QuickHost.Dto.GuestDto;
 import com.Project.QuickHost.Entity.*;
+import com.Project.QuickHost.Entity.enums.BookingStatus;
 import com.Project.QuickHost.Repository.*;
+import com.Project.QuickHost.exception.UnAuthorisedException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -27,6 +31,7 @@ public class BookingServiceImpl implements BookingService {
     private final ModelMapper modelMapper;
     private final UserRepo userRepo;
     private final GuestRepo guestRepo;
+
     @Override
     @Transactional
     public BookingDto initializeBooking(BookingRequest book) {
@@ -63,8 +68,7 @@ public class BookingServiceImpl implements BookingService {
 
         invRepo.saveAll(inventoryList);
         //in memorry user ,dummy user
-        User user=new User();
-        user.setId(1L);
+
 //        userRepo.save(user);
         //TODO:calculate dyanamic price
 
@@ -75,7 +79,7 @@ public class BookingServiceImpl implements BookingService {
                 .hotel(hotel)
                 .checkInDate(book.getCheckInDate())
                 .checkOutDate(book.getCheckOutDate())
-                .user(user)
+                .user(getCurrentUser())
                 .roomCount(book.getRoomCount())
                 .amount(BigDecimal.TEN)
                 .build();
@@ -84,15 +88,17 @@ public class BookingServiceImpl implements BookingService {
         return modelMapper.map(bookings,BookingDto.class);
 
     }
-  public User getCurrentUser(){
-        User user=new User();
-        user.setId(1L);
-        return user;
-  }
+
 
     @Override
     public BookingDto addGuest(Long bookingId,List<GuestDto> guestList) {
        Bookings book=bookingRepo.findById(bookingId).orElseThrow(()->new RuntimeException("room not available with id "+bookingId));
+
+       //CHECK WHETER USER OWNS BOOKING
+        User user=getCurrentUser();
+        if(!user.equals(book.getUser())){
+            throw new UnAuthorisedException("User not authroized to add guest for this account");
+        }//equal and hascode based on id
 
         log.info(" Adding guest for booking id {}",bookingId);
         if(hasBookingExpired(book))
@@ -105,7 +111,7 @@ public class BookingServiceImpl implements BookingService {
         }
         for(GuestDto guest1:guestList){
             Guest guest=modelMapper.map(guest1,Guest.class);
-            guest.setUser(getCurrentUser());
+            guest.setUser(user);
            guest=guestRepo.save(guest);
            book.getGuests().add(guest); //why cant we use setGuest(becuase multiple guest are added)
 
@@ -117,6 +123,12 @@ public class BookingServiceImpl implements BookingService {
     public boolean hasBookingExpired(Bookings book)
     {
         return book.getCreatedAt().plusMinutes(10).isBefore(LocalDateTime.now());
+    }
+
+    //getting authenticated user
+    public User getCurrentUser()
+    {
+        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
 }
