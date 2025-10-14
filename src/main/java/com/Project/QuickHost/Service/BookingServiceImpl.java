@@ -6,11 +6,15 @@ import com.Project.QuickHost.Dto.GuestDto;
 import com.Project.QuickHost.Entity.*;
 import com.Project.QuickHost.Entity.enums.BookingStatus;
 import com.Project.QuickHost.Repository.*;
+import com.Project.QuickHost.exception.ResourceNotFoundException;
 import com.Project.QuickHost.exception.UnAuthorisedException;
+import com.stripe.model.Event;
+import com.stripe.model.checkout.Session;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -19,6 +23,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
+
 @Service
 @Slf4j//simple logging fasad for java
 
@@ -31,6 +37,10 @@ public class BookingServiceImpl implements BookingService {
     private final ModelMapper modelMapper;
     private final UserRepo userRepo;
     private final GuestRepo guestRepo;
+    private final CheckoutService checkoutService;
+
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
     @Override
     @Transactional
@@ -81,11 +91,67 @@ public class BookingServiceImpl implements BookingService {
                 .checkOutDate(book.getCheckOutDate())
                 .user(getCurrentUser())
                 .roomCount(book.getRoomCount())
-                .amount(BigDecimal.TEN)
+                .amount(BigDecimal.valueOf(1000))
                 .build();
 
         bookingRepo.save(bookings);
         return modelMapper.map(bookings,BookingDto.class);
+
+    }
+
+    @Override
+    @Transactional
+    public String intiatePayements(Long bookingId) {
+        Bookings booking=bookingRepo.findById(bookingId).orElseThrow(()->new ResourceNotFoundException("Booking not bound with id "+bookingId));
+        User user=getCurrentUser();//curent user from security context  holder
+        //checking if user is owner or not of booking
+        if(!user.equals(booking.getUser()))
+        {
+            throw new UnAuthorisedException("Unauthorized user access of ");
+        }
+        if(hasBookingExpired(booking))
+        {
+            throw new IllegalStateException("Booking has expired");
+        }
+       String sessionUrl= checkoutService.getCheckOutSession(booking,
+                frontendUrl+"/payements/success",frontendUrl+"/payements/failure");
+        booking.setBookingStatus(BookingStatus.PAYEMENT_PENDING);
+        bookingRepo.save(booking);
+        return sessionUrl;
+
+    }
+
+    @Override
+    @Transactional
+    public void capturePayment(Event event) {
+        //check what event is it
+        if("checkout.session.completed".equals(event.getType()))
+        {
+            Session session =(Session) event.getDataObjectDeserializer().getObject().orElse(null);
+
+            if(session==null){return;}
+
+            String sessionId=session.getId();
+             Bookings booking=
+                     bookingRepo.findByStripe_Payment_sessionId(sessionId).orElseThrow(()->new ResourceNotFoundException("Booking SessionId not found: {} "+sessionId));
+             //Confirm booking
+            booking.setBookingStatus(BookingStatus.CONFIRMED);
+            bookingRepo.save(booking);
+
+            invRepo.findAndLockReservedInventory(booking.getRoom().getId(),
+                    booking.getCheckInDate(),booking.getCheckOutDate(),
+                    booking.getRoomCount());
+
+            invRepo.confirmBooking(booking.getRoom().getId(),
+                    booking.getCheckInDate(),booking.getCheckOutDate(),
+                    booking.getRoomCount());
+
+            log.info("successfully confirmed booking for booking id: {}",booking.getId());
+            //update the booked account in inventory
+
+        }else{
+            log.warn("Unhandled event type: {}",event.getType());
+        }
 
     }
 
@@ -107,7 +173,7 @@ public class BookingServiceImpl implements BookingService {
         }
         if(book.getBookingStatus()!=BookingStatus.RESERVED)
         {
-            throw  new IllegalStateException("Booking is not under reserved state,cant add guedt");
+            throw  new IllegalStateException("Booking is not under reserved state,cant add guest");
         }
         for(GuestDto guest1:guestList){
             Guest guest=modelMapper.map(guest1,Guest.class);
@@ -120,15 +186,17 @@ public class BookingServiceImpl implements BookingService {
         book=bookingRepo.save(book);
         return modelMapper.map(book,BookingDto.class);
     }
+    //Since we are holding user booking for 10 mintues we need to check whether booking as expired or not
     public boolean hasBookingExpired(Bookings book)
     {
         return book.getCreatedAt().plusMinutes(10).isBefore(LocalDateTime.now());
     }
 
-    //getting authenticated user
+    //getting authenticated user [checkking wheter current user and booking user are same or not]
     public User getCurrentUser()
     {
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
+
 
 }
