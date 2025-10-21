@@ -4,6 +4,8 @@ package com.Project.QuickHost.Controller;
 import com.Project.QuickHost.Dto.BookingDto;
 import com.Project.QuickHost.Dto.BookingRequest;
 import com.Project.QuickHost.Dto.GuestDto;
+import com.Project.QuickHost.Entity.Bookings;
+import com.Project.QuickHost.Entity.enums.BookingStatus;
 import com.Project.QuickHost.Service.BookingService;
 import lombok.RequiredArgsConstructor;
 
@@ -32,10 +34,26 @@ public class HotelBookingController {
         }
 
     //Booking controller
-    @PostMapping("{bookingId}/payements")
+    @PostMapping("{bookingId}/payments")
     public ResponseEntity<Map<String,String>> initiatePayement(@PathVariable Long bookingId)
     {
         String sessionUrl=bookService.intiatePayements(bookingId);
         return ResponseEntity.ok(Map.of("sessionUrl",sessionUrl));
+
+    }
+
+    @PostMapping("{bookingId}/cancel")
+    public ResponseEntity<Void> intiate_Cancel (@PathVariable Long bookingId)
+    {
+        bookService.initiateCancel(bookingId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping ("{bookingId}/status")
+    public ResponseEntity<Map<String,String>> getStatus (@PathVariable Long bookingId)
+    {
+
+        BookingStatus status=bookService.getBookingStatus(bookingId);
+        return ResponseEntity.ok(Map.of("bookingStatus",status.toString()));
     }
 }

@@ -8,14 +8,16 @@ import com.Project.QuickHost.Entity.enums.BookingStatus;
 import com.Project.QuickHost.Repository.*;
 import com.Project.QuickHost.exception.ResourceNotFoundException;
 import com.Project.QuickHost.exception.UnAuthorisedException;
+import com.stripe.exception.StripeException;
 import com.stripe.model.Event;
+import com.stripe.model.Refund;
 import com.stripe.model.checkout.Session;
+import com.stripe.param.RefundCreateParams;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +25,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Slf4j//simple logging fasad for java
@@ -38,6 +39,7 @@ public class BookingServiceImpl implements BookingService {
     private final UserRepo userRepo;
     private final GuestRepo guestRepo;
     private final CheckoutService checkoutService;
+    private final PricingService pricingService;
 
     @Value("${frontend.url}")
     private String frontendUrl;
@@ -69,18 +71,20 @@ public class BookingServiceImpl implements BookingService {
 
         }
 
-        //reserve the rooms/update booked count inventory
-        for(Inventory inventory:inventoryList)
-        {
-            inventory.setReservedCount(inventory.getReservedCount()+book.getRoomCount());//current book count+room requested
-            //save all for iterable entity
-        }
-
+//        reserve the rooms/update booked count inventory
+//        for(Inventory inventory:inventoryList)
+//        {
+//            inventory.setReservedCount(inventory.getReservedCount()+book.getRoomCount());//current book count+room requested
+//            //save all for iterable entity
+//        }
+        invRepo.intitBooking(room.getId(),book.getCheckInDate(),book.getCheckOutDate(),book.getRoomCount());
         invRepo.saveAll(inventoryList);
         //in memorry user ,dummy user
 
 //        userRepo.save(user);
         //TODO:calculate dyanamic price
+        BigDecimal currTotalAmt=pricingService.calcTotalPrice(inventoryList);
+        BigDecimal totalAmt=currTotalAmt.multiply(BigDecimal.valueOf(book.getRoomCount()));
 
         //createbooking
         Bookings bookings=Bookings.builder()
@@ -91,7 +95,7 @@ public class BookingServiceImpl implements BookingService {
                 .checkOutDate(book.getCheckOutDate())
                 .user(getCurrentUser())
                 .roomCount(book.getRoomCount())
-                .amount(BigDecimal.valueOf(1000))
+                .amount(totalAmt)
                 .build();
 
         bookingRepo.save(bookings);
@@ -114,7 +118,7 @@ public class BookingServiceImpl implements BookingService {
             throw new IllegalStateException("Booking has expired");
         }
        String sessionUrl= checkoutService.getCheckOutSession(booking,
-                frontendUrl+"/payements/success",frontendUrl+"/payements/failure");
+                frontendUrl+"/payments/success",frontendUrl+"/payments/failure");
         booking.setBookingStatus(BookingStatus.PAYEMENT_PENDING);
         bookingRepo.save(booking);
         return sessionUrl;
@@ -132,12 +136,15 @@ public class BookingServiceImpl implements BookingService {
             if(session==null){return;}
 
             String sessionId=session.getId();
+
              Bookings booking=
-                     bookingRepo.findByStripe_Payment_sessionId(sessionId).orElseThrow(()->new ResourceNotFoundException("Booking SessionId not found: {} "+sessionId));
+                     bookingRepo.findByStripePaymentsessionId(sessionId)
+                             .orElseThrow(() -> new ResourceNotFoundException(String.format("Booking SessionId not found: %s", sessionId)));
+
              //Confirm booking
             booking.setBookingStatus(BookingStatus.CONFIRMED);
             bookingRepo.save(booking);
-
+            //aQUIRE LOCK
             invRepo.findAndLockReservedInventory(booking.getRoom().getId(),
                     booking.getCheckInDate(),booking.getCheckOutDate(),
                     booking.getRoomCount());
@@ -153,6 +160,58 @@ public class BookingServiceImpl implements BookingService {
             log.warn("Unhandled event type: {}",event.getType());
         }
 
+    }
+
+    @Override
+    @Transactional
+    public void initiateCancel(Long bookingId) {
+        Bookings booking=bookingRepo.findById(bookingId).orElseThrow(()->new RuntimeException("room not available with id "+bookingId));
+
+        User user=getCurrentUser();
+        if(!user.equals(booking.getUser()))
+        {
+            throw new UnAuthorisedException("User not authroized to cancel this booking");
+        }
+        if(booking.getBookingStatus()!=BookingStatus.CONFIRMED)
+        {
+            throw new IllegalStateException("Only confirmed status be cancelled");
+        }
+
+        log.info(" Cancelling booking for booking id {}",bookingId);
+
+        booking.setBookingStatus(BookingStatus.CANCELLED);
+//        List<Guest> list=bookingRepo.findGuestsByBookingId(bookingId);
+       bookingRepo.save(booking);
+       //Updating inventory
+        invRepo.findAndLockReservedInventory(booking.getRoom().getId(), booking.getCheckInDate(),
+                booking.getCheckOutDate(), booking.getRoomCount());
+        invRepo.cancelBooking(booking.getRoom().getId(), booking.getCheckInDate(),booking.getCheckOutDate(),
+                booking.getRoomCount());
+
+         //Refund
+        try {
+            Session session=Session.retrieve(booking.getStripePaymentsessionId());
+            RefundCreateParams refundCreateParams= RefundCreateParams
+                    .builder()
+                    .setPaymentIntent(session.getPaymentIntent())
+                    .build();
+            Refund.create(refundCreateParams);
+        } catch (StripeException e) {
+            throw new RuntimeException(e);
+        }
+
+
+    }
+
+    @Override
+    public BookingStatus getBookingStatus(Long bookingId) {
+        Bookings booking=bookingRepo.findById(bookingId).orElseThrow(()->new RuntimeException("room not available with id "+bookingId));
+
+        User user=getCurrentUser();
+        if(!user.equals(booking.getUser())){
+            throw new UnAuthorisedException("User not authroized to add guest for this account");
+        }
+        return booking.getBookingStatus();
     }
 
 
@@ -189,7 +248,7 @@ public class BookingServiceImpl implements BookingService {
     //Since we are holding user booking for 10 mintues we need to check whether booking as expired or not
     public boolean hasBookingExpired(Bookings book)
     {
-        return book.getCreatedAt().plusMinutes(10).isBefore(LocalDateTime.now());
+        return book.getCreatedAt().plusMinutes(30).isBefore(LocalDateTime.now());
     }
 
     //getting authenticated user [checkking wheter current user and booking user are same or not]

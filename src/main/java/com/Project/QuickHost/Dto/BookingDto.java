@@ -3,6 +3,7 @@ package com.Project.QuickHost.Dto;
 import com.Project.QuickHost.Entity.enums.BookingStatus;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Set;
 
@@ -25,5 +26,6 @@ public class BookingDto {
 
 
     private Set<GuestDto> guests;
+    private BigDecimal price;
 
 }

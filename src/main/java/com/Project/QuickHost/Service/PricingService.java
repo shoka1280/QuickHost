@@ -5,6 +5,7 @@ import com.Project.QuickHost.Strategy.*;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 //using all strategy proerly
 @Service
@@ -21,5 +22,13 @@ public class PricingService {
         pricingStrategy=new UrgencyPricingStratergy(pricingStrategy);//in prcatgect we have wrapped all above strategy(order doesnt matter)
         return pricingStrategy.calculatePrice(inventory);
 
+    }
+
+    //return the sum of this inventory --------check
+    public BigDecimal calcTotalPrice(List<Inventory> inventoryList)
+    {
+       return inventoryList.stream()
+                .map(inventory -> calculateDynamicPricing(inventory))//calculating dynamic pricing for each inventory
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

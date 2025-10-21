@@ -34,7 +34,7 @@ public class Bookings {
     @Column(nullable = false)
     private Integer roomCount; // number of rooms booked for this booking
 
-    @ManyToOne(fetch=FetchType.LAZY)
+    @ManyToOne(fetch=FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false) // create a booking, specify the user it belongs to
     private User user;
 
@@ -66,6 +66,9 @@ public class Bookings {
 
     @Column(nullable=false,precision=10,scale=2)
     private BigDecimal amount; // Amount of the payment
+
+    @Column(unique = true)
+    private String stripePaymentsessionId;
 
 }
 
