@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -121,5 +122,36 @@ SET i.reservedCount=i.reservedCount - :numberOfRooms,
                         @Param("endDate")LocalDate endDate,
                         @Param("numberOfRooms")Integer numberOfRooms//kitne hame room book krne hai
     );
+
+    List<Inventory> findByRoomOrderByDate(Room room);
+    @Modifying
+    @Query("""
+      UPDATE  Inventory i 
+            SET i.closed=:status,
+             i.surgeFactor=:surgeFactor,
+             i.price=:price
+                   WHERE i.room.id=:roomId
+                         AND i.date between : startDate AND :endDate """)
+    void updateInventoryOnRequest(@Param("status")boolean status,
+                                  @Param("surgeFactor") BigDecimal surgeFactor,
+                                  @Param("price")BigDecimal price,
+                                  @Param("roomId")Long roomId,
+                                  @Param("startDate")LocalDate startDate,
+                                    @Param("endDate")LocalDate endDate);
+    @Query("""
+                SELECT i
+                FROM Inventory i
+                WHERE i.room.id = :roomId
+                  AND i.date BETWEEN :startDate AND :endDate
+                              AND i.closed = false
+                
+                  
+            """)
+    @Lock(LockModeType.PESSIMISTIC_WRITE)//TO AVOID LAST CONDITION
+   void findAndLockInventoryFrUpdation(@Param("roomId") Long roomId,
+                                                 @Param("startDate") LocalDate startDate,
+                                                 @Param("endDate") LocalDate endDate
+                                     );
+
 
 }

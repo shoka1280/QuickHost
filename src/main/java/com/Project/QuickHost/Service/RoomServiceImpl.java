@@ -35,6 +35,7 @@ public class RoomServiceImpl implements RoomService {
 
         //if give info to owner of hotel only
         User user=(User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user1=hotel.getOwner();
         if(!user.equals(hotel.getOwner())){
             throw new UnAuthorisedException("Not the current owner of hotel with id "+hotel.getId());
         }
@@ -70,7 +71,8 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
-    public RoomDto updateRoomById(Long id, RoomDto room) {
+    @Transactional
+    public RoomDto updateRoomById(Long id,  RoomDto room) {
         Room room1=roomRepo.findById(id).orElseThrow(()->new RuntimeException("Room not found with id: {}"+id));
         //check if ur owner or not
         User user=(User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -82,6 +84,7 @@ public class RoomServiceImpl implements RoomService {
         room1.setId(id);
         Room updatedRoom=roomRepo.save(room1);
         return modelMapper.map(updatedRoom,RoomDto.class);
+        //TODO: to update price adn size update inventory
     }
 
     @Override

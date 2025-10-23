@@ -2,12 +2,20 @@ package com.Project.QuickHost.Service;
 
 import com.Project.QuickHost.Dto.HotelPriceDto;
 import com.Project.QuickHost.Dto.HotelSearchRequest;
+import com.Project.QuickHost.Dto.InventoryDto;
+import com.Project.QuickHost.Dto.UpdateInventoryRequestDto;
 import com.Project.QuickHost.Entity.Inventory;
 import com.Project.QuickHost.Entity.Room;
+import com.Project.QuickHost.Entity.User;
 import com.Project.QuickHost.Repository.HotelMinPriceRepo;
 import com.Project.QuickHost.Repository.InventoryRepo;
+import com.Project.QuickHost.Repository.RoomRepo;
+import com.Project.QuickHost.exception.ResourceNotFoundException;
+import com.Project.QuickHost.exception.UnAuthorisedException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.ResourceClosedException;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,6 +25,10 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.Project.QuickHost.Util.AppUtils.getCurrentUser;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +37,8 @@ public class InventoryServiceImpl implements InventoryService {
     private final InventoryRepo inRepo;
     private final ModelMapper modelMapper;
     private final HotelMinPriceRepo hotelMinPriceRepo;
+
+    private final RoomRepo roomRepo;
 
 
 
@@ -79,5 +93,34 @@ public class InventoryServiceImpl implements InventoryService {
 
 //        return page.map(ho->modelMapper.map(ho, HotelMinPrice.class));//use have map method dont need stream
          return Hotelpage;
+    }
+
+    @Override
+    public List<InventoryDto> getInventoryOfRoom(Long roomId) {
+        log.info("Getting all invetory of room with id : {}",roomId);
+        Room room=roomRepo.findById(roomId).orElseThrow(()->new ResourceNotFoundException("Room not available for roomId: {} "+roomId));
+        User user=getCurrentUser();
+        if(!user.equals(room.getHotel().getOwner()))throw new UnAuthorisedException("Not authorized ");
+        List<Inventory>inventories=inRepo.findByRoomOrderByDate(room);
+
+       return inventories.stream().
+               map(inv->modelMapper.map(inv,InventoryDto.class))
+               .collect(Collectors.toList());
+
+    }
+
+    @Override
+    @Transactional
+    public List<InventoryDto> UpdateInventoryOfRoom(Long roomId, UpdateInventoryRequestDto updateInvDto) {
+        Room room=roomRepo.findById(roomId).orElseThrow(()->new ResourceNotFoundException("Room not avaibl for roomId: {}"+roomId));
+        User user=getCurrentUser();
+        inRepo.findAndLockInventoryFrUpdation(roomId,updateInvDto.getStartDate(),updateInvDto.getEndDate());
+
+        if(!user.equals(room.getHotel().getOwner()))throw new UnAuthorisedException("Not authorized ");
+        //Using modifying Queery
+        inRepo.updateInventoryOnRequest(updateInvDto.isClosed(),updateInvDto.getSurgeFactor(),updateInvDto.getPrice(),
+        roomId,updateInvDto.getStartDate(),updateInvDto.getEndDate());
+
+        return List.of();
     }
 }

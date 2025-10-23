@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Data
@@ -14,8 +15,8 @@ public class BookingDto {
 //    private Room room;
     private Integer roomCount; // number of rooms booked for this booking
 //    private User user;
-    private LocalDate createdAt;
-    private LocalDate updatedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private LocalDate checkInDate;
     private LocalDate checkOutDate;
 

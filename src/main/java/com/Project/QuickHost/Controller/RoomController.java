@@ -35,7 +35,7 @@ public class RoomController {//Roomsa dmin controller
     @PutMapping("/{id}")
     public ResponseEntity<RoomDto>updateRoomById(@PathVariable(name="hotelId")Long Hotelid,@PathVariable Long id,@RequestBody RoomDto room)
     {
-        RoomDto updatedRoom=roomService.updateRoomById(id,room);
+        RoomDto updatedRoom=roomService.updateRoomById(id, room);
         return ResponseEntity.ok(updatedRoom);
     }
     @DeleteMapping("/{id}")
@@ -44,6 +44,9 @@ public class RoomController {//Roomsa dmin controller
         roomService.deleteRoomById(id);
         return ResponseEntity.noContent().build();
     }
+
+
+
 
 
 }

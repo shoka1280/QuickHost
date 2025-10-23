@@ -1,7 +1,10 @@
 package com.Project.QuickHost.Entity;
 
+import com.Project.QuickHost.Entity.enums.Gender;
 import com.Project.QuickHost.Entity.enums.Roles;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
@@ -9,6 +12,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 
+import java.time.LocalDate;
 import java.util.Collection;
 
 import java.util.Objects;
@@ -24,15 +28,20 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
+
+    private String DOB;
 
 
     @Column(nullable = false,unique = true)//Will automatically create index fr it
+    @Email(message = "Invalid email format")
     private String email;
 
     private String password;//use Bcrypt password enco
 
     @ElementCollection(fetch=FetchType.EAGER)//create another table Appuser_roles
-    @Enumerated(EnumType.ORDINAL)//if using ordinal it mean roles are stored in number
+    @Enumerated(EnumType.STRING)//if using ordinal it mean roles are stored in number
     private Set<Roles>roles;//storing roles a user can have[one to one mapping]
 
 

@@ -3,6 +3,7 @@ package com.Project.QuickHost.Service;
 import com.Project.QuickHost.Dto.BookingDto;
 import com.Project.QuickHost.Dto.BookingRequest;
 import com.Project.QuickHost.Dto.GuestDto;
+import com.Project.QuickHost.Entity.User;
 import com.Project.QuickHost.Entity.enums.BookingStatus;
 import com.stripe.model.Event;
 import org.springframework.http.ResponseEntity;
@@ -21,4 +22,7 @@ public interface BookingService {
     void initiateCancel(Long bookingId);
 
     BookingStatus getBookingStatus(Long bookingId);
+
+
+    List<BookingDto> getAllBookingsByUser(User user);
 }
