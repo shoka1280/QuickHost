@@ -36,6 +36,8 @@ public class WebSecuConfig {
                         .requestMatchers("/admin/**").hasRole("HOTEL_MANAGER")
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/bookings/**").authenticated()
+                        .requestMatchers("/user/**").authenticated()
+
                         .anyRequest().permitAll()
                 )
                 .exceptionHandling(exctionHandlingConfig->exctionHandlingConfig.accessDeniedHandler(accessDeniedHandler()));

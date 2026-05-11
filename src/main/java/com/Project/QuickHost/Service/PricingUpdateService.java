@@ -36,7 +36,7 @@ public class PricingUpdateService {
     private final InventoryRepo inventoryRepo;
     private final PricingService priceService;
     //creating scheduler to update prices every hour
-    @Scheduled(cron = "0 0 */5 * * *") // every 5 hours
+    @Scheduled(cron = "0 0  */5 * * *") // every 5 hours
 
 
     public void UpdatePrices()

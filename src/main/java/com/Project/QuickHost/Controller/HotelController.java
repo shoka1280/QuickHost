@@ -1,6 +1,8 @@
 package com.Project.QuickHost.Controller;
 
+import com.Project.QuickHost.Dto.BookingDto;
 import com.Project.QuickHost.Dto.HotelDto;
+import com.Project.QuickHost.Dto.ReportDto;
 import com.Project.QuickHost.Service.HotelService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -54,8 +57,22 @@ public class HotelController {
     @GetMapping
     public ResponseEntity<List<HotelDto>>getAllHotel(){
         return new ResponseEntity<>(hotelService.getAllHotel(),HttpStatus.OK);
+    }
 
-
+    //Get All booking of hotel
+    @GetMapping("/{hotelId}/bookings")
+    public  ResponseEntity<List<BookingDto>> getAllBooking(@PathVariable Long hotelId )
+    {
+        return ResponseEntity.ok(hotelService.getAllBooking(hotelId));
+    }
+    @GetMapping("/{hotelId}/reports")
+    public ResponseEntity<ReportDto> getReport(@PathVariable Long hotelId,
+                                               @RequestParam(required = false) LocalDate startDate,
+                                               @RequestParam(required = false) LocalDate endDate)
+    {
+        if(startDate==null)startDate=LocalDate.now().minusMonths(1L);
+        if(endDate==null)endDate=LocalDate.now();
+        return ResponseEntity.ok(hotelService.getReport(hotelId,startDate,endDate));
     }
 
 

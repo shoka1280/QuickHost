@@ -1,9 +1,6 @@
 package com.Project.QuickHost.Service;
 
-import com.Project.QuickHost.Dto.HotelPriceDto;
-import com.Project.QuickHost.Dto.HotelSearchRequest;
-import com.Project.QuickHost.Dto.InventoryDto;
-import com.Project.QuickHost.Dto.UpdateInventoryRequestDto;
+import com.Project.QuickHost.Dto.*;
 import com.Project.QuickHost.Entity.Inventory;
 import com.Project.QuickHost.Entity.Room;
 import com.Project.QuickHost.Entity.User;
@@ -77,7 +74,7 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
-    public Page<HotelPriceDto> searchHotel(HotelSearchRequest req) {
+    public Page<HotelPriceResponseDto> searchHotel(HotelSearchRequest req) {
         log.info("Searching hotels with for city {} from {} to {}", req.getCity(), req.getStartDate(), req.getEndDate());
         Pageable pageable= PageRequest.of(req.getPage(), req.getSize());
         log.info("Searching hotels with request: {}", req);
@@ -86,13 +83,20 @@ public class InventoryServiceImpl implements InventoryService {
         //we have created inventory to denormilize data[no joins]
         //group the response based on rooms
         //get distinct hotel
-        int dateCount=(int) ChronoUnit.DAYS.between(req.getStartDate(),req.getEndDate())+1;
+        long dateCount=ChronoUnit.DAYS.between(req.getStartDate(),req.getEndDate())+1;
         //business logic-90days(ifelsecondition)
-//        Page<Hotel> hotelPage=inRepo.findHotelsWithAvailableInventory(req.getCity(),req.getStartDate(),req.getEndDate(),req.getRoomsCount(),dateCount,pageable);
-        Page<HotelPriceDto>Hotelpage=hotelMinPriceRepo.findHotelsWithAvailableInventory(req.getCity(),req.getStartDate(),req.getEndDate(),pageable);
+        Page<HotelPriceDto> hotelPage=hotelMinPriceRepo.findHotelsWithAvailableInventory(req.getCity(),req.getStartDate(),req.getEndDate(),pageable);
 
 //        return page.map(ho->modelMapper.map(ho, HotelMinPrice.class));//use have map method dont need stream
-         return Hotelpage;
+        return hotelPage.map(hotelPriceDto -> {
+            HotelPriceResponseDto hotelPriceResponseDto = modelMapper.map(hotelPriceDto.getHotel(), HotelPriceResponseDto.class);
+            hotelPriceResponseDto.getPrice();
+            return hotelPriceResponseDto;
+        });
+
+
+
+
     }
 
     @Override
@@ -111,16 +115,16 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     @Transactional
-    public List<InventoryDto> UpdateInventoryOfRoom(Long roomId, UpdateInventoryRequestDto updateInvDto) {
+    public void UpdateInventoryOfRoom(Long roomId, UpdateInventoryRequestDto updateInvDto) {
         Room room=roomRepo.findById(roomId).orElseThrow(()->new ResourceNotFoundException("Room not avaibl for roomId: {}"+roomId));
         User user=getCurrentUser();
         inRepo.findAndLockInventoryFrUpdation(roomId,updateInvDto.getStartDate(),updateInvDto.getEndDate());
 
         if(!user.equals(room.getHotel().getOwner()))throw new UnAuthorisedException("Not authorized ");
         //Using modifying Queery
-        inRepo.updateInventoryOnRequest(updateInvDto.isClosed(),updateInvDto.getSurgeFactor(),updateInvDto.getPrice(),
+       inRepo.updateInventoryOnRequest(updateInvDto.isClosed(),updateInvDto.getSurgeFactor(),updateInvDto.getPrice(),
         roomId,updateInvDto.getStartDate(),updateInvDto.getEndDate());
 
-        return List.of();
+
     }
 }

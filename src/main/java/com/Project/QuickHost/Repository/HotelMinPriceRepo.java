@@ -30,6 +30,8 @@ public interface HotelMinPriceRepo extends JpaRepository<HotelMinPrice,Long> {
             @Param("endDate")LocalDate endDate,
 
             Pageable pageable
+
+
     );
 
     Optional<HotelMinPrice> findByHotelAndDate(Hotel hotel, LocalDate date);

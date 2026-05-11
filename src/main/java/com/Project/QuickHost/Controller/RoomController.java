@@ -21,7 +21,7 @@ public class RoomController {//Roomsa dmin controller
             return ResponseEntity.ok(room);
         }
     @GetMapping
-    public ResponseEntity<List<RoomDto>> getAppRoomsOfHotel(@PathVariable(name="hotelId") Long id)
+    public ResponseEntity<List<RoomDto>> getAllRoomsOfHotel(@PathVariable(name="hotelId") Long id)
     {
         List<RoomDto> rooms=roomService.getAllRoomsHotel(id);
         return ResponseEntity.ok(rooms);
@@ -32,7 +32,7 @@ public class RoomController {//Roomsa dmin controller
         RoomDto room=roomService.createRoom(id,roomDto);
         return new ResponseEntity<>(room, HttpStatus.CREATED);
     }
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<RoomDto>updateRoomById(@PathVariable(name="hotelId")Long Hotelid,@PathVariable Long id,@RequestBody RoomDto room)
     {
         RoomDto updatedRoom=roomService.updateRoomById(id, room);

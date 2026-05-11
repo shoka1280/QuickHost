@@ -4,6 +4,7 @@ import com.Project.QuickHost.Entity.enums.Gender;
 import com.Project.QuickHost.Entity.enums.Roles;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,7 +31,8 @@ public class User implements UserDetails {
     private String name;
     @Enumerated(EnumType.STRING)
     private Gender gender;
-
+    @Pattern(regexp = "^[6-9]\\d{9}$", message = "Invalid phone number")
+    private String phonenumber;
     private String DOB;
 
 

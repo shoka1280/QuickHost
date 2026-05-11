@@ -3,6 +3,7 @@ package com.Project.QuickHost.Service;
 import com.Project.QuickHost.Dto.BookingDto;
 import com.Project.QuickHost.Dto.BookingRequest;
 import com.Project.QuickHost.Dto.GuestDto;
+import com.Project.QuickHost.Entity.Bookings;
 import com.Project.QuickHost.Entity.User;
 import com.Project.QuickHost.Entity.enums.BookingStatus;
 import com.stripe.model.Event;
@@ -24,5 +25,5 @@ public interface BookingService {
     BookingStatus getBookingStatus(Long bookingId);
 
 
-    List<BookingDto> getAllBookingsByUser(User user);
+    List<BookingDto> getAllBookingsByUser();
 }

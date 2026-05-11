@@ -2,13 +2,12 @@ package com.Project.QuickHost.Controller;
 
 import com.Project.QuickHost.Dto.BookingDto;
 import com.Project.QuickHost.Dto.ProfileUpdateRequestDto;
+import com.Project.QuickHost.Dto.UserDto;
+import com.Project.QuickHost.Service.BookingService;
 import com.Project.QuickHost.Service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -17,6 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final BookingService bookingService;
     @PutMapping("/profile/update")
     public ResponseEntity<Void>updateUserProfile(@RequestBody ProfileUpdateRequestDto profileUpdate)
     {
@@ -25,13 +25,19 @@ public class UserController {
 
         return ResponseEntity.noContent().build();
     }
-    @PutMapping("/mybookings")
+    @GetMapping ("/mybookings")
 
     public ResponseEntity<List<BookingDto>> getUserBookings()
     {
         // Implementation for fetching user bookings goes here
 
-        return ResponseEntity.ok(userService.getMyBookings());
+        return ResponseEntity.ok(bookingService.getAllBookingsByUser());
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<UserDto> getUserProfile()
+    {
+        return ResponseEntity.ok(userService.getUserProfile());
     }
 
 }

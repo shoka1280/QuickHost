@@ -131,7 +131,8 @@ SET i.reservedCount=i.reservedCount - :numberOfRooms,
              i.surgeFactor=:surgeFactor,
              i.price=:price
                    WHERE i.room.id=:roomId
-                         AND i.date between : startDate AND :endDate """)
+                         AND i.date between :startDate AND :endDate 
+                               """)
     void updateInventoryOnRequest(@Param("status")boolean status,
                                   @Param("surgeFactor") BigDecimal surgeFactor,
                                   @Param("price")BigDecimal price,
@@ -148,7 +149,7 @@ SET i.reservedCount=i.reservedCount - :numberOfRooms,
                   
             """)
     @Lock(LockModeType.PESSIMISTIC_WRITE)//TO AVOID LAST CONDITION
-   void findAndLockInventoryFrUpdation(@Param("roomId") Long roomId,
+   List<Inventory> findAndLockInventoryFrUpdation(@Param("roomId") Long roomId,
                                                  @Param("startDate") LocalDate startDate,
                                                  @Param("endDate") LocalDate endDate
                                      );

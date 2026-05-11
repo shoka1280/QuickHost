@@ -21,10 +21,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.awt.print.Book;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.Project.QuickHost.Util.AppUtils.getCurrentUser;
 
 @Service
 @Slf4j//simple logging fasad for java
@@ -121,7 +125,7 @@ public class BookingServiceImpl implements BookingService {
                 frontendUrl+"/payments/success",frontendUrl+"/payments/failure");
         booking.setBookingStatus(BookingStatus.PAYEMENT_PENDING);
         bookingRepo.save(booking);
-        return sessionUrl;
+        return sessionUrl; //when click weebhook will be used
 
     }
 
@@ -214,6 +218,16 @@ public class BookingServiceImpl implements BookingService {
         return booking.getBookingStatus();
     }
 
+    @Override
+    public List<BookingDto> getAllBookingsByUser() {
+        User user=(User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        return bookingRepo.findByUser(user).stream()
+                .map((book)->modelMapper.map(book,BookingDto.class))
+                .collect(Collectors.toList());
+    }
+
+
 
     @Override
     public BookingDto addGuest(Long bookingId,List<GuestDto> guestList) {
@@ -252,10 +266,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     //getting authenticated user [checkking wheter current user and booking user are same or not]
-    public User getCurrentUser()
-    {
-        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    }
+
 
 
 }

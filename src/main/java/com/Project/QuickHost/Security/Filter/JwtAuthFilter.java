@@ -2,7 +2,7 @@ package com.Project.QuickHost.Security.Filter;
 
 import com.Project.QuickHost.Entity.User;
 import com.Project.QuickHost.Security.JWTservice;
-import com.Project.QuickHost.Security.UserService;
+import com.Project.QuickHost.Service.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.stereotype.Component;
 
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.security.core.context.SecurityContextHolder;

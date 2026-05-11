@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@Embeddable
+@Embeddable// tell jpathese field are stored in owner entity
 public class HotelContactInfo {;
     private String address;
     private String phoneNumber;

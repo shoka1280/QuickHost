@@ -2,10 +2,12 @@ package com.Project.QuickHost.Service;
 
 import com.Project.QuickHost.Dto.BookingDto;
 import com.Project.QuickHost.Dto.ProfileUpdateRequestDto;
+import com.Project.QuickHost.Dto.UserDto;
 import com.Project.QuickHost.Entity.User;
 import com.Project.QuickHost.Repository.UserRepo;
 import lombok.RequiredArgsConstructor;
 
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -18,6 +20,7 @@ import static com.Project.QuickHost.Util.AppUtils.getCurrentUser;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserService implements UserDetailsService {
     private final UserRepo userRepo;
     private final ModelMapper modelMapper;
@@ -39,21 +42,24 @@ public class UserService implements UserDetailsService {
         if(profileUpdate.getName()!=null){
         user.setName(profileUpdate.getName());}
         if(profileUpdate.getDateOfBirth()!=null){
-            user.setDOB(profileUpdate.getDOB());}
+            user.setDOB(profileUpdate.getDateOfBirth());}
 
         if(profileUpdate.getGender()!=null){
         user.setGender(profileUpdate.getGender());
+        }
+        if(profileUpdate.getPhonenumber()!=null)
+        {
+            user.setPhonenumber(profileUpdate.getPhonenumber());
         }
 
 
         userRepo.save(user);
     }
 
-    public List<BookingDto> getMyBookings() {
-        User user= getCurrentUser();
-        List<BookingDto>list=bookService.getAllBookingsByUser(user);
-        return list;
 
-
+    public UserDto getUserProfile() {
+        User user=getCurrentUser();
+        log.info("Fetching profile for user: {}", user.getEmail());
+        return modelMapper.map(user, UserDto.class);
     }
 }

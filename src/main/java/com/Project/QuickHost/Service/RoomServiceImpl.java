@@ -10,6 +10,7 @@ import com.Project.QuickHost.exception.UnAuthorisedException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.Conditions;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -80,7 +81,12 @@ public class RoomServiceImpl implements RoomService {
             throw new UnAuthorisedException("Not the current owner of hotel with id "+room1.getHotel().getId());
         }
         log.info("udating room with id:{} ",id);
-        modelMapper.map(room,room1);
+
+        // PATCH‑only: use a temporary mapper that ignores nulls
+        ModelMapper patchMapper = new ModelMapper();
+        patchMapper.getConfiguration().setPropertyCondition(Conditions.isNotNull());
+
+        patchMapper.map(room,room1);
         room1.setId(id);
         Room updatedRoom=roomRepo.save(room1);
         return modelMapper.map(updatedRoom,RoomDto.class);
