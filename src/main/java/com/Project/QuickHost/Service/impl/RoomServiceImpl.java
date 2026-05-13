@@ -1,4 +1,4 @@
-package com.Project.QuickHost.Service;
+package com.Project.QuickHost.Service.impl;
 
 import com.Project.QuickHost.Dto.RoomDto;
 import com.Project.QuickHost.Entity.Hotel;
@@ -6,6 +6,8 @@ import com.Project.QuickHost.Entity.Room;
 import com.Project.QuickHost.Entity.User;
 import com.Project.QuickHost.Repository.HotelRepo;
 import com.Project.QuickHost.Repository.RoomRepo;
+import com.Project.QuickHost.Service.InventoryService;
+import com.Project.QuickHost.Service.RoomService;
 import com.Project.QuickHost.exception.UnAuthorisedException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

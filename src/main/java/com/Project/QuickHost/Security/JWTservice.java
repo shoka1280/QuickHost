@@ -38,7 +38,7 @@ public class JWTservice {
                 .claim("email", user.getEmail())//key value pair
                 .claim("roles", user.getRoles().toString())//JWT, a claim is a key-value pair in the token payload that carries information about the user or context.
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60*20))
+                .expiration(new Date(System.currentTimeMillis() + 10000L * 6000*200))
                 .signWith(getSecretKey()) // JWT signature create by them(secretKey)
                 .compact(); //compact is used to convert the token into string
     }

@@ -1,8 +1,9 @@
-package com.Project.QuickHost.Service;
+package com.Project.QuickHost.Service.impl;
 
 import com.Project.QuickHost.Entity.Bookings;
 import com.Project.QuickHost.Entity.User;
 import com.Project.QuickHost.Repository.BookingRepo;
+import com.Project.QuickHost.Service.CheckoutService;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.checkout.Session;
@@ -19,7 +20,7 @@ import java.math.BigDecimal;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CheckoutServiceImpl implements CheckoutService{
+public class CheckoutServiceImpl implements CheckoutService {
     private final BookingRepo bookrepo;
 
     @Override

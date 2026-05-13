@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -37,6 +38,7 @@ public class WebSecuConfig {
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/bookings/**").authenticated()
                         .requestMatchers("/user/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/hotels/*/reviews").authenticated()
 
                         .anyRequest().permitAll()
                 )
@@ -44,7 +46,7 @@ public class WebSecuConfig {
         return httpSecu.build();
     }
 
-    //Password encdoer
+    //Password encoder
     @Bean
     public PasswordEncoder passwordEncoder()
     {

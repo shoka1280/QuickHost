@@ -1,4 +1,4 @@
-package com.Project.QuickHost.Service;
+package com.Project.QuickHost.Service.impl;
 
 import com.Project.QuickHost.Dto.*;
 import com.Project.QuickHost.Entity.*;
@@ -7,6 +7,8 @@ import com.Project.QuickHost.Repository.BookingRepo;
 import com.Project.QuickHost.Repository.HotelRepo;
 import com.Project.QuickHost.Repository.RoomRepo;
 
+import com.Project.QuickHost.Service.HotelService;
+import com.Project.QuickHost.Service.InventoryService;
 import com.Project.QuickHost.exception.ResourceNotFoundException;
 import com.Project.QuickHost.exception.UnAuthorisedException;
 import jakarta.transaction.Transactional;
@@ -24,12 +26,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.Project.QuickHost.Util.AppUtils.getCurrentUser;
+//import static com.Project.QuickHost.Util.AppUtils.getCurrentUser;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class HotelServiceImpl implements  HotelService{
+public class HotelServiceImpl implements HotelService {
     private final HotelRepo hotelRepo;
     private final ModelMapper modelMapper;
     private final InventoryService inventoryService;
@@ -204,8 +206,8 @@ public class HotelServiceImpl implements  HotelService{
 
 
     }
-//    public User getCurrentUser()
-//    {
-//        return (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-//    }
+    public User getCurrentUser()
+    {
+        return (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    }
 }

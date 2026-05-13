@@ -1,4 +1,4 @@
-package com.Project.QuickHost.Service;
+package com.Project.QuickHost.Service.impl;
 
 import com.Project.QuickHost.Entity.Inventory;
 import com.Project.QuickHost.Strategy.*;

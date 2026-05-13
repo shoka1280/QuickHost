@@ -1,51 +1,38 @@
 package com.Project.QuickHost.Controller;
 
-import com.Project.QuickHost.Dto.*;
+import com.Project.QuickHost.Dto.CreateReviewRequest;
+import com.Project.QuickHost.Dto.PageModel;
+import com.Project.QuickHost.Dto.ReviewResponse;
 import com.Project.QuickHost.Entity.Review;
-import com.Project.QuickHost.Service.HotelService;
-import com.Project.QuickHost.Service.InventoryService;
-
 import com.Project.QuickHost.Service.ReviewService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/hotels")
 @RequiredArgsConstructor
+@Slf4j
+public class ReviewController {
+    private final ReviewService reviewService;
+    // private final HotelReviewSummaryService summaryService; // Phase 4
 
-public class HotelBrowseController {
-    private final InventoryService invService;
-    private final HotelService hotelService;
-    public final ReviewService reviewService;
-    @GetMapping("/search")
-   public ResponseEntity< PageModel<HotelPriceResponseDto>>serchingHotel(@RequestBody HotelSearchRequest req)
-    {
-        //for faciliting search we will use inventory service;
-      Page<HotelPriceResponseDto> page= invService.searchHotel(req);
-        PageModel<HotelPriceResponseDto> response = new PageModel<>(
-                page.getContent(),
-                page.getNumber(),
-                page.getSize(),
-                page.getTotalElements(),
-                page.getTotalPages(),
-                page.isLast()
-        );
-
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/{hotelId}/info")
-    public ResponseEntity<HotelInfoDto> getHotelInfo(@PathVariable Long hotelId)
-    {
-        return ResponseEntity.ok(hotelService.getHotelInfoById(hotelId));
+    @PostMapping("/hotels/{hotelId}/reviews")
+    public ResponseEntity<ReviewResponse> create(@PathVariable Long hotelId,
+                                                 @Valid @RequestBody CreateReviewRequest req) {
+        log.info("rating: "+req.rating());
+        log.info("twst"+req.text());
+        return new ResponseEntity<>(reviewService.createReview(hotelId, req), HttpStatus.CREATED);
     }
 
     @GetMapping("/hotels/{hotelId}/reviews")
@@ -53,13 +40,16 @@ public class HotelBrowseController {
             @PathVariable Long hotelId,
             @PageableDefault(size = 20, sort = "createdAt",
                     direction = Sort.Direction.DESC) Pageable pageable) {
-
         Page<Review> page = reviewService.getHotelReviews(hotelId, pageable);
         List<ReviewResponse> content = page.getContent().stream().map(this::toDto).toList();
         PageModel<ReviewResponse> body = new PageModel<>(content, page.getNumber(), page.getSize(),
                 page.getTotalElements(), page.getTotalPages(), page.isLast());
-
         return ResponseEntity.ok(body);
+    }
+
+    @GetMapping("/reviews/{id}")
+    public ResponseEntity<ReviewResponse> get(@PathVariable Long id) {
+        return ResponseEntity.ok(reviewService.getReview(id));
     }
     private ReviewResponse toDto(Review r) {
         return new ReviewResponse(

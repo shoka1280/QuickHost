@@ -1,4 +1,4 @@
-package com.Project.QuickHost.Service;
+package com.Project.QuickHost.Service.impl;
 
 import com.Project.QuickHost.Dto.BookingDto;
 import com.Project.QuickHost.Dto.BookingRequest;
@@ -6,8 +6,11 @@ import com.Project.QuickHost.Dto.GuestDto;
 import com.Project.QuickHost.Entity.*;
 import com.Project.QuickHost.Entity.enums.BookingStatus;
 import com.Project.QuickHost.Repository.*;
+import com.Project.QuickHost.Service.BookingService;
+import com.Project.QuickHost.Service.CheckoutService;
 import com.Project.QuickHost.exception.ResourceNotFoundException;
 import com.Project.QuickHost.exception.UnAuthorisedException;
+import com.stripe.exception.EventDataObjectDeserializationException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Event;
 import com.stripe.model.Refund;
@@ -20,8 +23,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
-import java.awt.print.Book;
+import com.stripe.exception.EventDataObjectDeserializationException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -135,7 +137,14 @@ public class BookingServiceImpl implements BookingService {
         //check what event is it
         if("checkout.session.completed".equals(event.getType()))
         {
-            Session session =(Session) event.getDataObjectDeserializer().getObject().orElse(null);
+            Session session;
+            try {
+                session = (Session) event.getDataObjectDeserializer().deserializeUnsafe();
+            } catch (EventDataObjectDeserializationException e) {
+                log.error("Failed to deserialize checkout.session.completed event: {}", e.getMessage());
+                return;
+            }
+            log.info("session: {}", session);
 
             if(session==null){return;}
 
@@ -228,12 +237,17 @@ public class BookingServiceImpl implements BookingService {
     }
 
 
+//    @Override
+//    public List<BookingDto> getAllBookingsByUser(User user) {
+//        return List.of();
+//    }
+
 
     @Override
     public BookingDto addGuest(Long bookingId,List<GuestDto> guestList) {
        Bookings book=bookingRepo.findById(bookingId).orElseThrow(()->new RuntimeException("room not available with id "+bookingId));
 
-       //CHECK WHETER USER OWNS BOOKING
+       //CHECK WHEThER USER OWNS BOOKING
         User user=getCurrentUser();
         if(!user.equals(book.getUser())){
             throw new UnAuthorisedException("User not authroized to add guest for this account");

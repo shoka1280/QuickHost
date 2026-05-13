@@ -4,7 +4,7 @@ import com.Project.QuickHost.Dto.BookingDto;
 import com.Project.QuickHost.Dto.ProfileUpdateRequestDto;
 import com.Project.QuickHost.Dto.UserDto;
 import com.Project.QuickHost.Service.BookingService;
-import com.Project.QuickHost.Service.UserService;
+import com.Project.QuickHost.Service.impl.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

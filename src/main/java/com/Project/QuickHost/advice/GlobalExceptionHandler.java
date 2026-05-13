@@ -1,6 +1,7 @@
 package com.Project.QuickHost.advice;
 
 
+import com.Project.QuickHost.exception.ConflictException;
 import com.Project.QuickHost.exception.ResourceNotFoundException;
 import io.jsonwebtoken.JwtException;
 import org.apache.coyote.BadRequestException;
@@ -88,6 +89,15 @@ public class GlobalExceptionHandler {//works with controller and service (dispat
                 .message(("Internal  Error") + exception.getMessage())
                 .build();
         return  new ResponseEntity<>(new ApiResponse<>(error), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ApiResponse<?>>handleConflictException(Exception ex) {
+        ApiError error = ApiError.builder()
+                .status(HttpStatus.CONFLICT)
+                .message("Conflic exception: " + ex.getMessage())
+                .build();
+        return new ResponseEntity<>(new ApiResponse<>(error), HttpStatus.CONFLICT);
     }
 
 }

@@ -1,4 +1,4 @@
-package com.Project.QuickHost.Service;
+package com.Project.QuickHost.Service.impl;
 
 import com.Project.QuickHost.Dto.*;
 import com.Project.QuickHost.Entity.Inventory;
@@ -7,16 +7,17 @@ import com.Project.QuickHost.Entity.User;
 import com.Project.QuickHost.Repository.HotelMinPriceRepo;
 import com.Project.QuickHost.Repository.InventoryRepo;
 import com.Project.QuickHost.Repository.RoomRepo;
+import com.Project.QuickHost.Service.InventoryService;
 import com.Project.QuickHost.exception.ResourceNotFoundException;
 import com.Project.QuickHost.exception.UnAuthorisedException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.ResourceClosedException;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -24,8 +25,6 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.Project.QuickHost.Util.AppUtils.getCurrentUser;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +36,10 @@ public class InventoryServiceImpl implements InventoryService {
 
     private final RoomRepo roomRepo;
 
+    public User getCurrentUser()
+    {
+        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    }
 
 
     @Override
@@ -44,7 +47,7 @@ public class InventoryServiceImpl implements InventoryService {
         log.info("Initializing inventory for room: {}", room.getId());
         LocalDate today=LocalDate.now();
         LocalDate endDate=today.plusYears(1);
-        for(;!today.isAfter(endDate);today=today.plusDays(1)) {
+        for(;!today.isAfter(endDate);today=today.plusDays(1)) { //endate should >today date
         Inventory inventory=Inventory.builder()
                 .hotel(room.getHotel())
                 .room(room)

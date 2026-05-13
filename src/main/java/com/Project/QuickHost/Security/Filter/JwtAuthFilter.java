@@ -2,7 +2,7 @@ package com.Project.QuickHost.Security.Filter;
 
 import com.Project.QuickHost.Entity.User;
 import com.Project.QuickHost.Security.JWTservice;
-import com.Project.QuickHost.Service.UserService;
+import com.Project.QuickHost.Service.impl.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

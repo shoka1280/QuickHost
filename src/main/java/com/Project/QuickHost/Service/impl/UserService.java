@@ -1,10 +1,10 @@
-package com.Project.QuickHost.Service;
+package com.Project.QuickHost.Service.impl;
 
-import com.Project.QuickHost.Dto.BookingDto;
 import com.Project.QuickHost.Dto.ProfileUpdateRequestDto;
 import com.Project.QuickHost.Dto.UserDto;
 import com.Project.QuickHost.Entity.User;
 import com.Project.QuickHost.Repository.UserRepo;
+import com.Project.QuickHost.Service.BookingService;
 import lombok.RequiredArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
@@ -13,8 +13,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 import static com.Project.QuickHost.Util.AppUtils.getCurrentUser;
 
