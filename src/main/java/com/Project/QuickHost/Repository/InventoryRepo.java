@@ -53,6 +53,7 @@ public interface InventoryRepo extends JpaRepository<Inventory, Long> {
             @Param("dateCount")Integer dateCount,
             Pageable pageable
     );
+   //Findiing hotels with active rooms
     @Query("""
                 SELECT i
                 FROM Inventory i

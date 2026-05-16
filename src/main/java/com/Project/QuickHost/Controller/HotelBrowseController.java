@@ -55,26 +55,11 @@ public class HotelBrowseController {
                     direction = Sort.Direction.DESC) Pageable pageable) {
 
         Page<Review> page = reviewService.getHotelReviews(hotelId, pageable);
-        List<ReviewResponse> content = page.getContent().stream().map(this::toDto).toList();
+        List<ReviewResponse> content = page.getContent().stream().map(ReviewResponse::from).toList();
         PageModel<ReviewResponse> body = new PageModel<>(content, page.getNumber(), page.getSize(),
                 page.getTotalElements(), page.getTotalPages(), page.isLast());
 
         return ResponseEntity.ok(body);
     }
-    private ReviewResponse toDto(Review r) {
-        return new ReviewResponse(
-                r.getId(),
-                r.getHotel().getId(),
-                r.getUser().getId(),
-                r.getText(),
-                r.getRating(),
-                r.getCreatedAt(),
-//                r.getOverallSentiment(),
-//                r.getSentimentScore(),
-//                r.getSnippet(),
-//                r.getAspectScores(),
-//                r.getAnalysisStatus(),
-                r.getAnalyzedAt()
-        );
-    }
+
 }

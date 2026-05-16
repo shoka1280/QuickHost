@@ -18,7 +18,7 @@ import java.util.List;
 public interface ReviewRepo extends JpaRepository<Review, Long> {
     Page<Review> findByHotel(Hotel hotel, Pageable pageable);
 
-    Page<Review> findByHotel_Id(Long hotelId, Pageable pageable); //getting review by hotelId
+    Page<Review> findByHotel_Id(Long hotelId, Pageable pageable); //getting review by hotelId  review has hotel and hotel has hotelId that why er have _Id
 
     boolean existsByUserAndHotel(User user, Hotel hotel);
 
@@ -26,6 +26,7 @@ public interface ReviewRepo extends JpaRepository<Review, Long> {
 
     List<Review> findTop100ByHotel_IdAndAnalysisStatusOrderByCreatedAtDesc(
             Long hotelId, AnalysisStatus status);
+
     @Query("select avg(r.rating) from Review r where r.hotel.id = :hotelId")
     Double averageRating(@Param("hotelId") Long hotelId);
 }

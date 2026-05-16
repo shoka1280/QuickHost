@@ -92,7 +92,7 @@ public class GlobalExceptionHandler {//works with controller and service (dispat
     }
 
     @ExceptionHandler(ConflictException.class)
-    public ResponseEntity<ApiResponse<?>>handleConflictException(Exception ex) {
+    public ResponseEntity<ApiResponse<?>>handleConflictException(ConflictException ex) {
         ApiError error = ApiError.builder()
                 .status(HttpStatus.CONFLICT)
                 .message("Conflic exception: " + ex.getMessage())
