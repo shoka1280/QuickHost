@@ -20,7 +20,7 @@ import java.util.concurrent.CompletableFuture;
 public class SentimentAnalysisService {
     private final ReviewRepo reviewRepo;
     private final SentimentAnalysisGraph graph;
-
+    //We use @Async and transaction because, we need this method to have own thread[since rest can executy without it and a new db transaction (@Transactional)
     @Async("sentimentExecutor")
     @Transactional
     public CompletableFuture<Void> analyzeAsync(Long reviewId) {

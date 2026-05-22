@@ -23,4 +23,5 @@ public class QuickHostApplication {
 //		return args -> System.out.println("Gemini says: " + m.generate("am i  asking you to given reply in json format or by default u give this in json formar"));
 //	}
 
+//	downloads % ~/Downloads/stripe listen --forward-to localhost:8080/api/v1/webhook/payment
 }

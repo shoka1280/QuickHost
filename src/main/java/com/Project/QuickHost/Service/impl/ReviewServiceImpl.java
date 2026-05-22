@@ -13,6 +13,7 @@ import com.Project.QuickHost.Repository.BookingRepo;
 import com.Project.QuickHost.Repository.HotelRepo;
 import com.Project.QuickHost.Repository.ReviewRepo;
 import com.Project.QuickHost.Service.ReviewService;
+import com.Project.QuickHost.Service.sentiment.SentimentAnalysisService;
 import com.Project.QuickHost.Util.AppUtils;
 import com.Project.QuickHost.exception.ConflictException;
 import com.Project.QuickHost.exception.ResourceNotFoundException;
@@ -31,7 +32,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewRepo reviewRepo;
     private final HotelRepo hotelRepo;
     private final BookingRepo bookingRepo;
-    // private final SentimentAnalysisService sentimentAnalysisService; // added in Phase 3
+     private final SentimentAnalysisService sentimentAnalysisService; // added in Phase 3
 
     @Override
     @Transactional
@@ -57,7 +58,9 @@ public class ReviewServiceImpl implements ReviewService {
         Review saved = reviewRepo.save(r);
 
 
-        // Phase 3 inserts: sentimentAnalysisService.analyzeAsync(saved.getId());
+//         Phase 3 inserts:
+        //Use Async and Transaction :to have its own thread,dont let other
+    sentimentAnalysisService.analyzeAsync(saved.getId());
         return ReviewResponse.from(saved);
     }
 

@@ -1,5 +1,7 @@
 package com.Project.QuickHost.Config;
 
+import com.Project.QuickHost.Service.sentiment.ai.AspectSentimentExtractor;
+import com.Project.QuickHost.Service.sentiment.ai.HotelSummarizer;
 import com.Project.QuickHost.Service.sentiment.ai.OverallSentimentExtractor;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.googleai.GoogleAiGeminiChatModel;
@@ -25,5 +27,12 @@ public class LangChain4jConfig {
     @Bean
     OverallSentimentExtractor overall(ChatLanguageModel m) {
         return AiServices.create(OverallSentimentExtractor.class, m);
+    }
+    @Bean
+    AspectSentimentExtractor aspect(ChatLanguageModel m) {
+        return AiServices.create(AspectSentimentExtractor.class, m);
+    }
+    @Bean HotelSummarizer hotelSummarizer(ChatLanguageModel m) {
+        return AiServices.create(HotelSummarizer.class, m);
     }
 }

@@ -40,4 +40,9 @@ public class Hotel {
 
     @ManyToOne(optional = true, fetch = FetchType.EAGER)//ensuring it isnt empty
     private User owner;
+
+    @Column(columnDefinition = "TEXT")
+    private String reviewSummary;          // JSON of SummaryResult
+    private LocalDateTime reviewSummaryGeneratedAt;
+    private Integer reviewSummaryReviewCount;
 }
