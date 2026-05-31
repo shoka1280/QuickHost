@@ -26,6 +26,7 @@ public class SentimentAnalysisService {
     public CompletableFuture<Void> analyzeAsync(Long reviewId) {
         Review r = reviewRepo.findById(reviewId).orElseThrow();
         try {
+            log.info("running the graph");
             AnalyzedReview a = graph.run(r.getText());
             r.setOverallSentiment(a.sentiment());
             r.setSentimentScore(a.score());

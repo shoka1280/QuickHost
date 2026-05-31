@@ -5,6 +5,7 @@ import com.Project.QuickHost.Entity.enums.AnalysisStatus;
 import com.Project.QuickHost.Repository.HotelRepo;
 import com.Project.QuickHost.Repository.ReviewRepo;
 import com.Project.QuickHost.Service.sentiment.HotelReviewAggregator;
+import com.Project.QuickHost.Service.sentiment.ai.CachedSummary;
 import com.Project.QuickHost.Service.sentiment.ai.HotelSummarizer;
 import com.Project.QuickHost.Service.sentiment.ai.SummaryResult;
 import com.Project.QuickHost.exception.ResourceNotFoundException;
@@ -26,7 +27,7 @@ import java.util.Map;
 @Slf4j
 
 public class HotelReviewSummaryService {
-    private static final int threshold=10;//ENough to make first summart or enough for updated summary
+    private static final int threshold=5;//ENough to make first summart or enough for updated summary
     private final HotelRepo hotelRepo;
     private final ReviewRepo reviewRepo;
     private final HotelReviewAggregator hotelReviewAggregator;
@@ -84,8 +85,9 @@ public class HotelReviewSummaryService {
             throw new IllegalStateException("Failed to (de)serialize summary payload",e);
         }
 
+        CachedSummary cached = new CachedSummary(s, agg.aspectAverages(), agg.overallStars());
         try {
-            h.setReviewSummary(json.writeValueAsString(s));
+            h.setReviewSummary(json.writeValueAsString(cached));
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Failed to serialise summary for caching", e);
         }
@@ -101,11 +103,16 @@ public class HotelReviewSummaryService {
 
     private HotelReviewSummaryResponse deserializeCached(Hotel h, Long hotelId, long currentCount) {
         try {
-            SummaryResult s = json.readValue(h.getReviewSummary(), SummaryResult.class);
-            HotelAggregate agg = hotelReviewAggregator.aggregate(hotelId);  // for aspect avgs + overallStars
-            return new HotelReviewSummaryResponse(hotelId, s.narrative(), s.pros(), s.cons(),
-                    agg.overallStars(), (int) currentCount, agg.aspectAverages(),
+//            SummaryResult s = json.readValue(h.getReviewSummary(), SummaryResult.class);//json string to object[deserialization]
+//            HotelAggregate agg = hotelReviewAggregator.aggregate(hotelId);  // for aspect avgs + overallStars[fresh aggregate call],expensive
+
+            CachedSummary c = json.readValue(h.getReviewSummary(), CachedSummary.class);
+
+            return new HotelReviewSummaryResponse(hotelId,
+                    c.summary().narrative(), c.summary().pros(), c.summary().cons(),
+                    c.overallStars(), (int) currentCount, c.aspectAverages(),
                     h.getReviewSummaryGeneratedAt());
+
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Cached summary unparseable for hotel " + hotelId, e);
         }

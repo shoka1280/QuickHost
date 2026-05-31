@@ -15,8 +15,10 @@ import org.springframework.web.client.HttpServerErrorException.InternalServerErr
 
 import javax.naming.AuthenticationException;
 import org.springframework.security.access.AccessDeniedException;
+import lombok.extern.slf4j.Slf4j;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {//works with controller and service (dispatcher servelet0
 
     @ExceptionHandler(ResourceNotFoundException.class)
@@ -50,6 +52,7 @@ public class GlobalExceptionHandler {//works with controller and service (dispat
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<?>> handleGenericException(Exception ex) {
+        log.error("Unhandled exception reached generic handler", ex);
         ApiError error = ApiError.builder()
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .message("An unexpected error occurred: " + ex.getMessage())

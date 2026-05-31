@@ -51,8 +51,8 @@ public class Review {
     @Column(length = 280)
     private String snippet;
 
-    @ElementCollection
-    @CollectionTable(name = "review_aspect_scores",
+    @ElementCollection //Instead of packing multiple values into a single database row, @ElementCollection automatically creates a separate database table to store the elements
+    @CollectionTable(name = "review_aspect_scores",//because it has multiple column
             joinColumns = @JoinColumn(name = "review_id"))
     @MapKeyColumn(name = "aspect")
     @Column(name = "score")
