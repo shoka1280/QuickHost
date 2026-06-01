@@ -65,4 +65,10 @@ public class Review {
     private String analysisError;
 
     private LocalDateTime analyzedAt;
+
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    private int retryCount = 0;
+
+
+    private LocalDateTime nextAttemptAt;
 }

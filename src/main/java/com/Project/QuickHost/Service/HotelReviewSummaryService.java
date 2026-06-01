@@ -11,6 +11,7 @@ import com.Project.QuickHost.Service.sentiment.ai.SummaryResult;
 import com.Project.QuickHost.exception.ResourceNotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.resilience4j.ratelimiter.RateLimiter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -32,6 +33,7 @@ public class HotelReviewSummaryService {
     private final ReviewRepo reviewRepo;
     private final HotelReviewAggregator hotelReviewAggregator;
     private final HotelSummarizer hotelSummarizer;
+    private final RateLimiter rateLimiter;
     private final ModelMapper modelMapper;//For internal obj to obj transafromtation
     private final ObjectMapper json;//For json seriliasation and deserilization
      @Transactional
@@ -67,23 +69,23 @@ public class HotelReviewSummaryService {
 
         SummaryResult s;
 
-        try{
-            s=hotelSummarizer.summarise(
-                    json.writeValueAsString(agg.aspectAverages()),
-//                    Aspect averages (-1 to 1): {"cleanliness": 0.65, "service": -0.20, ...}
-                    json.writeValueAsString(agg.distribution()),
-                    // {"POSITIVE":62,"NEUTRAL":18,"NEGATIVE":20} helping to desided overal review where to keep postive,neutral,or negative,we are using equl snippet
-                    String.join(" | ", agg.topPositiveSnippets()),
-                    String.join(" | ",agg.topNegativeSnippets())
-//             example:       topPositiveSnippets = ["Best stay ever...", "Spotless rooms...", ..., "Comfortable beds..."]  // 8 strings
-//            topNegativeSnippets = ["Filthy, loud...", "Overpriced...", ..., "Disappointing service..."]   // 8 strings
+        s=rateLimiter.executeSupplier(() -> {
+            try {
+                return hotelSummarizer.summarise(
+                        json.writeValueAsString(agg.aspectAverages()),
+    //                    Aspect averages (-1 to 1): {"cleanliness": 0.65, "service": -0.20, ...}
+                        json.writeValueAsString(agg.distribution()),
+                        // {"POSITIVE":62,"NEUTRAL":18,"NEGATIVE":20} helping to desided overal review where to keep postive,neutral,or negative,we are using equl snippet
+                        String.join(" | ", agg.topPositiveSnippets()),
+                        String.join(" | ",agg.topNegativeSnippets())
+    //             example:       topPositiveSnippets = ["Best stay ever...", "Spotless rooms...", ..., "Comfortable beds..."]  // 8 strings
+    //            topNegativeSnippets = ["Filthy, loud...", "Overpriced...", ..., "Disappointing service..."]   // 8 strings
 
-            );
-
-        }
-         catch (JsonProcessingException e) {
-            throw new IllegalStateException("Failed to (de)serialize summary payload",e);
-        }
+                );
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        });
 
         CachedSummary cached = new CachedSummary(s, agg.aspectAverages(), agg.overallStars());
         try {

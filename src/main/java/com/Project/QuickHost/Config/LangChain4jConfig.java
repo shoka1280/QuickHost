@@ -21,6 +21,7 @@ public class LangChain4jConfig {
         return GoogleAiGeminiChatModel.builder()
                 .apiKey(key).modelName(name).temperature(temp)
                 .responseFormat(ResponseFormat.JSON)
+                .maxRetries(1)   // disable internal retries; let our limiter + cron be the only retry mechanism
                 .build();
     }
 

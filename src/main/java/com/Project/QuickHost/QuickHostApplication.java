@@ -17,11 +17,11 @@ public class QuickHostApplication {
 		SpringApplication.run(QuickHostApplication.class, args);
 	}
 
-//	//Performing test
-//	@Bean
-//	CommandLineRunner llmSmoke(ChatLanguageModel m) {
-//		return args -> System.out.println("Gemini says: " + m.generate("am i  asking you to given reply in json format or by default u give this in json formar"));
-//	}
+	//Performing test
+	@Bean
+	CommandLineRunner llmSmoke(ChatLanguageModel m) {
+		return args -> System.out.println("Gemini says: " + m.generate("am i  current prime minister of inida"));
+	}
 
 //	downloads % ~/Downloads/stripe listen --forward-to localhost:8080/api/v1/webhook/payment
 }
