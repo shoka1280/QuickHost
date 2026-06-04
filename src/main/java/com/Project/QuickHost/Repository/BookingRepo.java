@@ -37,7 +37,7 @@ public interface BookingRepo extends JpaRepository<Bookings,Long> {
        """)
     List<Bookings> findCompletedStaysOrdered(@Param("user") User user,
                                              @Param("hotel") Hotel hotel,
-                                             Pageable pageable);
+                                             Pageable pageable); //Those who have completed stay
 
     default Optional<Bookings> mostRecentCompletedStay(User user, Hotel hotel) {
         return findCompletedStaysOrdered(user, hotel, PageRequest.of(0, 1))

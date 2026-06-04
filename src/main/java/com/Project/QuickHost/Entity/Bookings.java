@@ -70,5 +70,10 @@ public class Bookings {
     @Column(unique = true)
     private String stripePaymentsessionId;
 
+//    @Column(columnDefinition = "TEXT")
+//    private String reviewSummary;          // JSON of SummaryResult
+//    private LocalDateTime reviewSummaryGeneratedAt;
+//    private Integer reviewSummaryReviewCount;
+
 }
 

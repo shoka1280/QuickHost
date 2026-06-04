@@ -67,17 +67,18 @@ public class PricingUpdateService {
         //updating inventory by dyanamic prices
         updateInventoryPrices(inventoryList);
        //updating hotel min prices based on inventory[we will since minimum room price per hotel ]
-        updateHotelMinPrice(hotel,inventoryList,startDate ,endDate);
+        updateHotelMinPrice(hotel,inventoryList,startDate ,endDate); // doesnt matter if end date is more than actual data it will sting give result
 
 
     }
 
     private void updateHotelMinPrice(Hotel hotel, List<Inventory> inventoryList, LocalDate startDate, LocalDate endDate) {
+        //getting mininum pricee for the dats
         Map<LocalDate,BigDecimal> dailyMinPrice=inventoryList.stream()
                 .collect(Collectors.groupingBy(Inventory::getDate//grouping by date
                 ,Collectors.mapping(Inventory::getPrice,Collectors.minBy(Comparator.naturalOrder()))//extract price and find minimum price for that data
                 ))
-                .entrySet().stream()//maps you get convert its entryset into stream for futher
+                .entrySet().stream()//maps you get convert its entry set into stream for further
                 .collect(Collectors.toMap(Map.Entry::getKey,e->e.getValue().orElse(BigDecimal.ZERO)));//take date as keu and unwrap the price
 
         //PreParing hotelMinPrice entity in bulk
@@ -96,12 +97,12 @@ public class PricingUpdateService {
         hotelMinPriceRepo.saveAll(hotelPrices);//batch insert or update
     }
 
-
+     //update invertory pricing
     private void updateInventoryPrices(List<Inventory>inventoryList)
     {
         inventoryList.forEach(inventory->
         {
-            //calculating dyanamic price
+            //calculating dyanamic prices
             BigDecimal dynamicPrice=priceService.calculateDynamicPricing(inventory);
             //updating the price
             inventory.setPrice(dynamicPrice);

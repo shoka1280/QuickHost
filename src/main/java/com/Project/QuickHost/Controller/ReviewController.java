@@ -1,9 +1,12 @@
 package com.Project.QuickHost.Controller;
 
 import com.Project.QuickHost.Dto.CreateReviewRequest;
+import com.Project.QuickHost.Dto.HotelReviewSummaryResponse;
 import com.Project.QuickHost.Dto.PageModel;
 import com.Project.QuickHost.Dto.ReviewResponse;
+import com.Project.QuickHost.Dto.ReviewResponse.*;
 import com.Project.QuickHost.Entity.Review;
+import com.Project.QuickHost.Service.HotelReviewSummaryService;
 import com.Project.QuickHost.Service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,13 +28,13 @@ import java.util.List;
 @Slf4j
 public class ReviewController {
     private final ReviewService reviewService;
-    // private final HotelReviewSummaryService summaryService; // Phase 4
+     private final HotelReviewSummaryService summaryService; // Phase 4
 
     @PostMapping("/hotels/{hotelId}/reviews")
     public ResponseEntity<ReviewResponse> create(@PathVariable Long hotelId,
                                                  @Valid @RequestBody CreateReviewRequest req) {
-        log.info("rating: "+req.rating());
-        log.info("twst"+req.text());
+//        log.info("rating: "+req.rating());
+//        log.info("test"+req.text());
         return new ResponseEntity<>(reviewService.createReview(hotelId, req), HttpStatus.CREATED);
     }
 
@@ -41,7 +44,7 @@ public class ReviewController {
             @PageableDefault(size = 20, sort = "createdAt",
                     direction = Sort.Direction.DESC) Pageable pageable) {
         Page<Review> page = reviewService.getHotelReviews(hotelId, pageable);
-        List<ReviewResponse> content = page.getContent().stream().map(this::toDto).toList();
+        List<ReviewResponse> content = page.getContent().stream().map(ReviewResponse::from).toList();
         PageModel<ReviewResponse> body = new PageModel<>(content, page.getNumber(), page.getSize(),
                 page.getTotalElements(), page.getTotalPages(), page.isLast());
         return ResponseEntity.ok(body);
@@ -51,20 +54,11 @@ public class ReviewController {
     public ResponseEntity<ReviewResponse> get(@PathVariable Long id) {
         return ResponseEntity.ok(reviewService.getReview(id));
     }
-    private ReviewResponse toDto(Review r) {
-        return new ReviewResponse(
-                r.getId(),
-                r.getHotel().getId(),
-                r.getUser().getId(),
-                r.getText(),
-                r.getRating(),
-                r.getCreatedAt(),
-//                r.getOverallSentiment(),
-//                r.getSentimentScore(),
-//                r.getSnippet(),
-//                r.getAspectScores(),
-//                r.getAnalysisStatus(),
-                r.getAnalyzedAt()
-        );
+
+    @GetMapping("/hotels/{hotelId}/review-summary")
+    public ResponseEntity<HotelReviewSummaryResponse> summary(@PathVariable Long hotelId) {
+        return ResponseEntity.ok(summaryService.getOrGenerate(hotelId));
     }
+
+
 }
